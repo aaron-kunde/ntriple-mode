@@ -84,6 +84,164 @@
     (set (make-local-variable 'indent-line-function) 'ntriple-indent-line)
   #+END_SRC
 
+* Validation
+** Validate the whole buffer
+   To validate the whole buffer, we define an interactive function, which
+   validates each line until the end of the buffer:
+   #+BEGIN_SRC emacs-lisp
+     (defun ntriple-validate-buffer ()
+       "Validates the current buffer."
+       (interactive)
+       (beginning-of-buffer)
+       (while (and (not (eobp)) (ntriple-validate-current-line))
+         (forward-line 1)))
+   #+END_SRC
+
+** Validate the current line
+   To validate the current line, we have to check first, if the line is empty or
+   contains only blanks or comments. This is done in line [[(skip-line)]].
+   #+BEGIN_SRC emacs-lisp -n -r
+     (defun ntriple-validate-current-line ()
+       "Validates the current line. Lines are valid, if they are empty, contain only
+      comments or triples."
+       (interactive)
+       (beginning-of-line)
+       (if (looking-at "^[[:blank:]]*\\(:?#.*\\)?$") ; Skip comments and empty lines (ref:skip-line)
+           t
+         (if (looking-at "^\\(.*?\\)[[:blank:]]+\\(.*?\\)[[:blank:]]+\\(.*?\\)[[:blank:]]+\\.[[:blank:]]*\\(:?#.*\\)?$") ; Is line valid triple? (ref:is-triple-p)
+             (if (ntriple-validate-subject (match-string 1))
+                 (if (ntriple-validate-predicate (match-string 2))
+                     (if (ntriple-validate-object (match-string 3))
+                         t ; Line is finally valid
+                       (error "Invalid object: %s" (match-string 3)))
+                   (error "Invalid predicate: %s" (match-string 2)))
+               (error "Invalid subject: %s" (match-string 1)))
+           (error "Invalid triple"))))
+   #+END_SRC
+   If the line is not a comment or not empty, it must contain a valid
+   triple. According to the specification triples are separated by whitespaces
+   and terminated by a dot (`.'). Whitespaces and comments after the terminator
+   are ignored. The check for a valid triple is performed in line
+   [[(is-triple-p)]]. The regular expression extracts three sub-expressions for the
+   subject, predicate and object of the triple. These are validated in different
+   functions. Only if these tree functions return non-nil, the line contains a
+   valid triple and therefore is valid.
+
+   Note, that we use the non-greedy versions for the sub-expressions
+   for subject, predicate and object, since objects can contain whitespaces.
+
+** Validate subjects
+   According to the specification, a valid subject is either a valid IRI
+   reference or a valid blank node label:
+   #+BEGIN_SRC emacs-lisp
+     (defun ntriple-validate-subject (subject)
+       "Validates the subject of a triple."
+       (or (ntriple-validate-iriref subject)
+           (ntriple-validate-blank-node-label subject)))
+   #+END_SRC
+
+*** Validate IRI references
+    A valid IRI reference has to match a certain regular expression (line
+    [[(iriref)]]), which is constructed by defining two constants:
+    #+BEGIN_SRC emacs-lisp -r -n
+      (defconst NTRIPLE_UCHAR "\\\\u[[:xdigit:]]\\{4\\}\\|\\\\U[[:xdigit:]]\\{8\\}"(ref:uchar)
+        "The regular expression, to which a Unicode escaped character must match.")
+
+      (defconst NTRIPLE_IRIREF (ref:iriref)
+        (format "<\\(:?[^%c-%c<>\"{}^`\\\\]\\|%s\\)*>" #x00 #x20 NTRIPLE_UCHAR)
+        "The regular expression, to which an IRI reference must match.")
+
+      (defun ntriple-validate-iriref (iriref)(ref:val-iriref)
+        "Checks whether an IRI reference is valid."
+        (string-match-p NTRIPLE_IRIREF iriref))
+    #+END_SRC
+    Using this method to create the regular (sub-)expressions, we are able to
+    copy and paste most of the specified grammar. First we define and combine
+    the regular expressions for IRI references (line [[(iriref)]]) and Unicode
+    escaped characters (line [[(uchar)]]) as constants. The validating function (line [[(val-iriref)]]) then
+    matches the reference to this expression.
+
+*** Validate blank node labels
+    The validation of a blank node label goes the same way as for IRIs:
+    #+BEGIN_SRC emacs-lisp -n -r
+      (defconst NTRIPLE_PN_CHARS_BASE(ref:const-blank-start)
+        (format "[A-Z]\\|[a-z]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]"
+                #x00C0 #x00D6 #x00D8 #x00F6 #x00F8 #x02FF #x0370 #x037D #x037F #x1FFF
+                #x200C #x200D #x2070 #x218F #x2C00 #x2FEF #x3001 #xD7FF #xF900 #xFDCF
+                #xFDF0 #xFFFD #x10000 #xEFFFF)
+        "The regular expression, containing all basic characters, which can be part of
+       a name.")
+
+      (defconst NTRIPLE_PN_CHARS_U (format "%s\\|_\\|:" NTRIPLE_PN_CHARS_BASE)
+        "The regular expression, containing all characters, which can be part of a
+       name, including underscore `_' and colon `:'.")
+
+      (defconst NTRIPLE_PN_CHARS
+        (format "%s\\|-\\|[0-9]|%c\\|[%c-%c]\\|[%c-%c]"
+                NTRIPLE_PN_CHARS_U #x00B7 #x0300 #x036F #x203F #x2040)
+        "The regular expression, containing all characters, which can be part of a
+       name.")
+
+      (defconst NTRIPLE_BLANK_NODE_LABEL
+        (format "_:\\(:?%s\\|[0-9]\\)\\(:?\\(:?%s\\|\\.\\)*%s\\)?"
+                NTRIPLE_PN_CHARS_U NTRIPLE_PN_CHARS NTRIPLE_PN_CHARS)
+        "The regular expression, to which the label of a blank node must match.")(ref:const-blank-end)
+
+      (defun ntriple-validate-blank-node-label (label)(ref:val-label)
+        "Checks whether a blank node label is valid."
+        (string-match-p NTRIPLE_BLANK_NODE_LABEL label))
+    #+END_SRC
+    First we have to define some additional constants (lines [[(const-blank-start)]]
+    to [[(const-blank-end)]]) for the regular (sub-)expressions for blank
+    nodes. After that we define the function, which matches the label to the
+    constructed expression in line [[(val-label)]].
+
+** Validate predicates
+   The validation of a predicate is even more simple, because a predicate has to
+   be a valid IRI, which we already defined for [[*Validate subjects][subjects]]:
+   #+BEGIN_SRC emacs-lisp
+     (defun ntriple-validate-predicate (predicate)
+       "Checks whether a predicate of a triple is valid."
+       (ntriple-validate-iriref predicate))
+   #+END_SRC
+
+** Validate objects
+   Validating an object is similar to validating a subject, except, that an
+   object may be a literal as well:
+   #+BEGIN_SRC emacs-lisp
+     (defun ntriple-validate-object (object)
+       "Checks whether an object of a triple is valid."
+       (or (ntriple-validate-iriref object)
+           (ntriple-validate-blank-node-label object)
+           (ntriple-validate-literal object)))
+   #+END_SRC
+
+*** Validate Literals
+    Literals again are validated by a function (line [[(val-literal)]]), matching
+    the literal to a regular expressions, which is defined by several constants
+    (lines [[(const-literal-start)]] to [[(const-literal-end)]]):
+    #+BEGIN_SRC emacs-lisp -n -r
+      (defconst NTRIPLE_ECHAR "\\\\[tbnrf\"`\\\\]"(ref:const-literal-start)
+        "The regular expression containing all escape characters.")
+
+      (defconst NTRIPLE_STRING_LITERAL_QUOTE
+        (format "\"\\(:?[^%c%c%c%c]\\|%s\\|%s\\)*\""
+                #x22 #x5c #xa #xd NTRIPLE_ECHAR NTRIPLE_UCHAR)
+        "The regular expression, to which a quoted string must match.")
+
+      (defconst NTRIPLE_LANGTAG "@[a-zA-Z]+\\(:?-[a-zA-Z0-9]+\\)*"
+        "The regular expression, to which a language tag must match.")
+
+      (defconst NTRIPLE_LITERAL
+        (format "%s\\(:?^^%s\\|%s\\)?"
+                NTRIPLE_STRING_LITERAL_QUOTE NTRIPLE_IRIREF NTRIPLE_LANGTAG)
+        "The regular expression, to which a literal must match.")(ref:const-literal-end)
+
+      (defun ntriple-validate-literal (literal)(ref:val-literal)
+        "Checks whether a literal is valid."
+        (string-match-p NTRIPLE_LITERAL literal))
+    #+END_SRC
+
 * Provide the mode
   At last we add the line
   #+BEGIN_SRC emacs-lisp
