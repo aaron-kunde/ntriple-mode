@@ -1,3 +1,11 @@
 * Introduction
   We start with N-Triples, as they are defined in the [[http://www.w3.org/TR/2014/REC-n-triples-20140225/][W3C recommendation]] because
   this is the smallest subset of non-XML RDF serialization.
+
+* Creating a test file
+  First we need some test file. We use the [[http://www.w3.org/TR/2014/REC-n-triples-20140225/#sec-introduction][first]]
+#+INCLUDE: "example1.nt" src ntriple
+  and [[http://www.w3.org/TR/2014/REC-n-triples-20140225/#sec-literals][third]]
+#+INCLUDE: "example3.nt" src ntriple
+  example from the specification.
+
