@@ -66,3 +66,20 @@
    #+END_SRC
    The first entry marks the symbol `<' as an open parenthesis and the second
    marks `>' as a closed parenthesis.
+
+* Indentation
+  Since simple triples consists always of a subject, a predicate and an object,
+  separated by whitespaces and terminated by a dot (`.'), every line should be
+  indented to column number 0. Therefore we define the following function
+  `ntriple-indent-line'
+  #+BEGIN_SRC emacs-lisp
+    (defun ntriple-indent-line ()
+      "Indents the current line to column 0."
+      (interactive)
+      (indent-line-to 0))
+  #+END_SRC
+  and add it as the current function for indenting a line by adding the
+  following line to our mode definition:
+  #+BEGIN_SRC emacs-lisp
+    (set (make-local-variable 'indent-line-function) 'ntriple-indent-line)
+  #+END_SRC

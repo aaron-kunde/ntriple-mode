@@ -32,12 +32,19 @@
 ;; Features
 ;; --------
 ;; - Basic syntax highlighting
+;; - Indentation
 
 ;; Changelog
 ;; ---------
+;; Version 0.2: Added indentation
 ;; Version 0.1: Added basic highlighting
 
 ;;; Code:
+
+(defun ntriple-indent-line ()
+  "Indents the current line to column 0."
+  (interactive)
+  (indent-line-to 0))
 
 (define-derived-mode ntriple-mode fundamental-mode "N-Triple"
   "Major mode for editing RDF-files serialized as N-Triples (W3C recommendation REC-n-triples-20140225)."
@@ -47,4 +54,5 @@
   (set (make-local-variable 'font-lock-syntactic-keywords) ; No comments in IRIs
        '(("<[^>]*\\(#[^>]*\\)" 1 "w")))
   (modify-syntax-entry ?< "(") ; Make '<' and '>' parenthesis
-  (modify-syntax-entry ?> ")"))
+  (modify-syntax-entry ?> ")")
+  (set (make-local-variable 'indent-line-function) 'ntriple-indent-line))
