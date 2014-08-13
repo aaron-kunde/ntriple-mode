@@ -1,0 +1,3 @@
+* Introduction
+  We start with N-Triples, as they are defined in the [[http://www.w3.org/TR/2014/REC-n-triples-20140225/][W3C recommendation]] because
+  this is the smallest subset of non-XML RDF serialization.
