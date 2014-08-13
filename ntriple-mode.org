@@ -31,3 +31,26 @@
   #+END_SRC
   When we now switch back to our example file and reload the mode, we see, that
   strings between double quotes (`"') are highlighted.
+
+* Syntax table
+  Syntax highlighting and parsing is partly driven by the syntax table. We
+  modify it a little to achieve several goals.
+
+** Enabling comments
+   Comments start with a `#' and end with a newline. Therefore we add the
+   following two lines to our mode definition:
+   #+BEGIN_SRC emacs-lisp
+     (modify-syntax-entry ?# "<")
+     (modify-syntax-entry ?\n ">")       
+   #+END_SRC
+   But this leads to a problem: The symbol `#' is only the start of a comment
+   outside an IRI or a quoted string. The latter is done automatically, but not
+   the first case. To achieve this, we add some syntax properties by setting the
+   buffer local variable `font-lock-syntactic-keywords' in out mode definition:
+   #+BEGIN_SRC emacs-lisp
+     (set (make-local-variable 'font-lock-syntactic-keywords)
+	  '(("<[^>]*\\(#[^>]*\\)" 1 "w")))
+   #+END_SRC
+   This regular expression states, that a `#' which is prefixed by a string,
+   that starts with a `<' and has not yet ended with a `>' hat to be treated as
+   a word character and not as the start of a comment.

@@ -29,8 +29,20 @@
 ;; For more information how I wrote this mode, please see the documentation in
 ;; <https://github.com/aaron-kunde/ntriple-mode/ntriple-mode.org>
 
+;; Features
+;; --------
+;; - Basic syntax highlighting
+
+;; Changelog
+;; ---------
+;; Version 0.1: Added basic highlighting
+
 ;;; Code:
 
 (define-derived-mode ntriple-mode fundamental-mode "N-Triple"
   "Major mode for editing RDF-files serialized as N-Triples (W3C recommendation REC-n-triples-20140225)."
-  (set (make-local-variable 'font-lock-defaults) '(())))
+  (set (make-local-variable 'font-lock-defaults) '(()))
+  (modify-syntax-entry ?# "<") ; Mark comments
+  (modify-syntax-entry ?\n ">")
+  (set (make-local-variable 'font-lock-syntactic-keywords) ; No comments in IRIs
+       '(("<[^>]*\\(#[^>]*\\)" 1 "w"))))
