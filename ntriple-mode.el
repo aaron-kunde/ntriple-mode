@@ -45,4 +45,6 @@
   (modify-syntax-entry ?# "<") ; Mark comments
   (modify-syntax-entry ?\n ">")
   (set (make-local-variable 'font-lock-syntactic-keywords) ; No comments in IRIs
-       '(("<[^>]*\\(#[^>]*\\)" 1 "w"))))
+       '(("<[^>]*\\(#[^>]*\\)" 1 "w")))
+  (modify-syntax-entry ?< "(") ; Make '<' and '>' parenthesis
+  (modify-syntax-entry ?> ")"))

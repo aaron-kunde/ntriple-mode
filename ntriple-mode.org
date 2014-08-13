@@ -54,3 +54,15 @@
    This regular expression states, that a `#' which is prefixed by a string,
    that starts with a `<' and has not yet ended with a `>' hat to be treated as
    a word character and not as the start of a comment.
+
+** Making use of parent mode
+   `<' and `>' enclose links (IRIs) and shall be treated as parentheses, so that
+   opening (`<') and closing (`>') an IRI is highlighted, if the cursor is on
+   them. Therefore we modify the syntax table by adding the following lines to
+   the mode definition:
+   #+BEGIN_SRC emacs-lisp
+     (modify-syntax-entry ?< "(")
+     (modify-syntax-entry ?> ")")
+   #+END_SRC
+   The first entry marks the symbol `<' as an open parenthesis and the second
+   marks `>' as a closed parenthesis.
