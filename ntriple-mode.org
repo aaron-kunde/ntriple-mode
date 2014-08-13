@@ -83,3 +83,15 @@
   #+BEGIN_SRC emacs-lisp
     (set (make-local-variable 'indent-line-function) 'ntriple-indent-line)
   #+END_SRC
+
+* Provide the mode
+  At last we add the line
+  #+BEGIN_SRC emacs-lisp
+   (provide 'ntriple-mode)
+  #+END_SRC
+  to provide our mode to the Emacs environment. This will be the last line in
+  our file. Now, users can add
+  #+BEGIN_SRC emacs-lisp
+   (require 'ntriple-mode)
+  #+END_SRC
+  to their ~.emacs~ file, to make the mode accessible.

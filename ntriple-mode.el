@@ -56,3 +56,5 @@
   (modify-syntax-entry ?< "(") ; Make '<' and '>' parenthesis
   (modify-syntax-entry ?> ")")
   (set (make-local-variable 'indent-line-function) 'ntriple-indent-line))
+
+(provide 'ntriple-mode)
