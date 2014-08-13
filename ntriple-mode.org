@@ -22,5 +22,12 @@
   This loads the N-Triple mode for this file, like it can be seen in the status
   line.
 
-
-
+* Syntax highlighting
+  To enable highlighting the variable `font-lock-defaults' must not be nil.
+  For the first approach we just set the variable buffer local to a list
+  containing an empty list, by adding the following line to our mode definition:
+  #+BEGIN_SRC emacs-lisp
+    (set (make-local-variable 'font-lock-defaults) '(()))
+  #+END_SRC
+  When we now switch back to our example file and reload the mode, we see, that
+  strings between double quotes (`"') are highlighted.

@@ -32,4 +32,5 @@
 ;;; Code:
 
 (define-derived-mode ntriple-mode fundamental-mode "N-Triple"
-  "Major mode for editing RDF-files serialized as N-Triples (W3C recommendation REC-n-triples-20140225).")
+  "Major mode for editing RDF-files serialized as N-Triples (W3C recommendation REC-n-triples-20140225)."
+  (set (make-local-variable 'font-lock-defaults) '(())))
