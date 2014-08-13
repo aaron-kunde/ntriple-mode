@@ -9,3 +9,18 @@
 #+INCLUDE: "example3.nt" src ntriple
   example from the specification.
 
+* Defining the mode
+  Regarding to http://www.emacswiki.org/emacs/DerivedMode we take the approach
+  of deriving the mode from the Fundamental Mode:
+  #+BEGIN_SRC emacs-lisp
+    (define-derived-mode ntriple-mode fundamental-mode "N-Triple"
+      "N-Triple mode is a major mode for editing RDF-files serialized as N-Triples."
+      )
+  #+END_SRC
+  Now we can switch to our example file and try:
+  : M-x ntriple-mode
+  This loads the N-Triple mode for this file, like it can be seen in the status
+  line.
+
+
+
