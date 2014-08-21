@@ -49,7 +49,7 @@
   "The regular expression, to which a Unicode escaped character must match.")
 
 (defconst NTRIPLE_IRIREF
-  (format "<\\(:?[^%c-%c<>\"{}^`\\\\]\\|%s\\)*>" #x00 #x20 NTRIPLE_UCHAR)
+  (format "<\\(:?[^%c-%c<>\"{}|^`\\\\]\\|%s\\)*>" #x00 #x20 NTRIPLE_UCHAR)
   "The regular expression, to which an IRI reference must match.")
 
 (defconst NTRIPLE_PN_CHARS_BASE
