@@ -65,7 +65,7 @@
  name, including underscore `_' and colon `:'.")
 
 (defconst NTRIPLE_PN_CHARS
-  (format "%s\\|-\\|[0-9]|%c\\|[%c-%c]\\|[%c-%c]"
+  (format "%s\\|-\\|[0-9]\\|%c\\|[%c-%c]\\|[%c-%c]"
 	  NTRIPLE_PN_CHARS_U #x00B7 #x0300 #x036F #x203F #x2040)
   "The regular expression, containing all characters, which can be part of a
  name.")
