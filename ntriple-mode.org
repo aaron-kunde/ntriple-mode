@@ -32,6 +32,20 @@
   When we now switch back to our example file and reload the mode, we see, that
   strings between double quotes (`"') are highlighted.
 
+** Using validation constants for advanced highligting
+   The regular expressions defined in [[*Validation][Validation]] can be used for syntax
+   highlighting as well, therefore we just need to add some code like
+   #+BEGIN_SRC emacs-lisp
+     (set (make-local-variable 'font-lock-defaults)
+          `(((,NTRIPLE_IRIREF . font-lock-keyword-face)
+             (,NTRIPLE_BLANK_NODE_LABEL . font-lock-builtin-face)
+             (,NTRIPLE_LANGTAG . font-lock-variable-name-face))))
+   #+END_SRC
+   to the mode definition. In this example, IRI references are highlighted as
+   keywords, blank nodes as built ins and language tags as variables. For a
+   proper highlighting each regular expression, which is defined as a constant,
+   is grouped silently by enclosing ~\\(:?~ and ~\\)~.
+
 * Syntax table
   Syntax highlighting and parsing is partly driven by the syntax table. We
   modify it a little to achieve several goals.

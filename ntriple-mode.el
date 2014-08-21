@@ -45,49 +45,51 @@
 
 ;; Start: Validation
 ;; Definition of regular expressions for validation
-(defconst NTRIPLE_UCHAR "\\\\u[[:xdigit:]]\\{4\\}\\|\\\\U[[:xdigit:]]\\{8\\}"
+(defconst NTRIPLE_UCHAR
+  "\\(?:\\\\u[[:xdigit:]]\\{4\\}\\|\\\\U[[:xdigit:]]\\{8\\}\\)"
   "The regular expression, to which a Unicode escaped character must match.")
 
 (defconst NTRIPLE_IRIREF
-  (format "<\\(:?[^%c-%c<>\"{}|^`\\\\]\\|%s\\)*>" #x00 #x20 NTRIPLE_UCHAR)
+  (format "\\(:?<\\(:?[^%c-%c<>\"{}|^`\\\\]\\|%s\\)*>\\)"
+	  #x00 #x20 NTRIPLE_UCHAR)
   "The regular expression, to which an IRI reference must match.")
 
 (defconst NTRIPLE_PN_CHARS_BASE
-  (format "[A-Z]\\|[a-z]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]"
+  (format "\\(:?[A-Z]\\|[a-z]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\|[%c-%c]\\)"
 	  #x00C0 #x00D6 #x00D8 #x00F6 #x00F8 #x02FF #x0370 #x037D #x037F #x1FFF
 	  #x200C #x200D #x2070 #x218F #x2C00 #x2FEF #x3001 #xD7FF #xF900 #xFDCF
 	  #xFDF0 #xFFFD #x10000 #xEFFFF)
   "The regular expression, containing all basic characters, which can be part of
  a name.")
 
-(defconst NTRIPLE_PN_CHARS_U (format "%s\\|_\\|:" NTRIPLE_PN_CHARS_BASE)
+(defconst NTRIPLE_PN_CHARS_U (format "\\(:?%s\\|_\\|:\\)" NTRIPLE_PN_CHARS_BASE)
   "The regular expression, containing all characters, which can be part of a
  name, including underscore `_' and colon `:'.")
 
 (defconst NTRIPLE_PN_CHARS
-  (format "%s\\|-\\|[0-9]\\|%c\\|[%c-%c]\\|[%c-%c]"
+  (format "\\(:?%s\\|-\\|[0-9]\\|%c\\|[%c-%c]\\|[%c-%c]\\)"
 	  NTRIPLE_PN_CHARS_U #x00B7 #x0300 #x036F #x203F #x2040)
   "The regular expression, containing all characters, which can be part of a
  name.")
 
 (defconst NTRIPLE_BLANK_NODE_LABEL
-  (format "_:\\(:?%s\\|[0-9]\\)\\(:?\\(:?%s\\|\\.\\)*%s\\)?"
+  (format "\\(:?_:\\(:?%s\\|[0-9]\\)\\(:?\\(:?%s\\|\\.\\)*%s\\)?\\)"
 	  NTRIPLE_PN_CHARS_U NTRIPLE_PN_CHARS NTRIPLE_PN_CHARS)
   "The regular expression, to which the label of a blank node must match.")
 
-(defconst NTRIPLE_ECHAR "\\\\[tbnrf\"`\\\\]"
+(defconst NTRIPLE_ECHAR "\\(:?\\\\[tbnrf\"`\\\\]\\)"
   "The regular expression containing all escape characters.")
 
 (defconst NTRIPLE_STRING_LITERAL_QUOTE
-  (format "\"\\(:?[^%c%c%c%c]\\|%s\\|%s\\)*\""
+  (format "\\(:?\"\\(:?[^%c%c%c%c]\\|%s\\|%s\\)*\"\\)"
 	  #x22 #x5c #xa #xd NTRIPLE_ECHAR NTRIPLE_UCHAR)
   "The regular expression, to which a quoted string must match.")
 
-(defconst NTRIPLE_LANGTAG "@[a-zA-Z]+\\(:?-[a-zA-Z0-9]+\\)*"
+(defconst NTRIPLE_LANGTAG "\\(:?@[a-zA-Z]+\\(:?-[a-zA-Z0-9]+\\)*\\)"
   "The regular expression, to which a language tag must match.")
 
 (defconst NTRIPLE_LITERAL
-  (format "%s\\(:?^^%s\\|%s\\)?"
+  (format "\\(:?%s\\(:?^^%s\\|%s\\)?\\)"
 	  NTRIPLE_STRING_LITERAL_QUOTE NTRIPLE_IRIREF NTRIPLE_LANGTAG)
   "The regular expression, to which a literal must match.")
 
@@ -151,7 +153,10 @@
 
 (define-derived-mode ntriple-mode fundamental-mode "N-Triple"
   "Major mode for editing RDF-files serialized as N-Triples (W3C recommendation REC-n-triples-20140225)."
-  (set (make-local-variable 'font-lock-defaults) '(()))
+  (set (make-local-variable 'font-lock-defaults)
+       `(((,NTRIPLE_IRIREF . font-lock-keyword-face)
+	  (,NTRIPLE_BLANK_NODE_LABEL . font-lock-builtin-face)
+	  (,NTRIPLE_LANGTAG . font-lock-variable-name-face))))
   (modify-syntax-entry ?# "<") ; Mark comments
   (modify-syntax-entry ?\n ">")
   (set (make-local-variable 'font-lock-syntactic-keywords) ; No comments in IRIs
